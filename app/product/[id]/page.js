@@ -18,6 +18,23 @@ async function getProduct(id) {
   return product;
 }
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product not found",
+      description: "The requested product is not available right now.",
+    };
+  }
+
+  return {
+    title: product.title,
+    description: product.desc || `Discover ${product.title} in Mumbai Society Market.`,
+  };
+}
+
 async function getAiDescription(product) {
   const text = [product.title, product.desc, product.category]
     .filter(Boolean)
