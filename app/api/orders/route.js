@@ -2,10 +2,7 @@ import connectDB from "@/lib/db";
 import Order from "@/models/Order";
 import Razorpay from "razorpay";
 
-const getRazorpayClient = () => {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
+const getRazorpayClient = (keyId, keySecret) => {
   if (!keyId || !keySecret) {
     return null;
   }
@@ -19,7 +16,7 @@ const getRazorpayClient = () => {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { userName, society, phone, address, items, totalAmount } = body;
+    const { userName, society, phone, address, items, totalAmount, razorpayKeyId, razorpayKeySecret } = body;
 
     if (!userName || !society || !phone || !address || !items?.length || !totalAmount) {
       return Response.json({ error: "Missing order details" }, { status: 400 });
@@ -27,7 +24,9 @@ export async function POST(req) {
 
     await connectDB();
 
-    const razorpayClient = getRazorpayClient();
+    const keyId = razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+    const keySecret = razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+    const razorpayClient = getRazorpayClient(keyId, keySecret);
     if (!razorpayClient) {
       return Response.json({ error: "Razorpay is not configured yet" }, { status: 503 });
     }

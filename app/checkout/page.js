@@ -32,6 +32,10 @@ export default function CheckoutPage() {
     phone: "",
     address: "",
   });
+  const [paymentData, setPaymentData] = useState({
+    keyId: "",
+    keySecret: "",
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -45,6 +49,11 @@ export default function CheckoutPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -75,6 +84,8 @@ export default function CheckoutPage() {
             quantity: item.quantity || 1,
           })),
           totalAmount,
+          razorpayKeyId: paymentData.keyId,
+          razorpayKeySecret: paymentData.keySecret,
         }),
       });
 
@@ -85,9 +96,9 @@ export default function CheckoutPage() {
         return;
       }
 
-      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || "";
+      const keyId = paymentData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || "";
       if (!keyId) {
-        alert("Razorpay is not configured for checkout yet.");
+        alert("Please enter a Razorpay key ID or use the default config.");
         return;
       }
 
@@ -109,6 +120,7 @@ export default function CheckoutPage() {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               orderId: data.orderId,
+              razorpayKeySecret: paymentData.keySecret,
             }),
           });
 
@@ -207,6 +219,29 @@ export default function CheckoutPage() {
                 className="min-h-28 w-full rounded-lg border border-purple-500/20 bg-slate-900/70 px-4 py-3 text-white outline-none"
                 placeholder="Delivery address"
               />
+
+              <div className="rounded-lg border border-purple-500/20 bg-slate-900/50 p-4">
+                <h3 className="mb-2 text-sm font-semibold text-purple-200">Razorpay credentials</h3>
+                <p className="mb-3 text-sm text-gray-400">Enter your Razorpay key ID and secret here before payment. Leave blank to use the default setup.</p>
+                <div className="space-y-3">
+                  <input
+                    name="keyId"
+                    value={paymentData.keyId}
+                    onChange={handlePaymentChange}
+                    className="w-full rounded-lg border border-purple-500/20 bg-slate-950/70 px-4 py-3 text-white outline-none"
+                    placeholder="Razorpay Key ID"
+                  />
+                  <input
+                    name="keySecret"
+                    type="password"
+                    value={paymentData.keySecret}
+                    onChange={handlePaymentChange}
+                    className="w-full rounded-lg border border-purple-500/20 bg-slate-950/70 px-4 py-3 text-white outline-none"
+                    placeholder="Razorpay Key Secret"
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="w-full rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-3 font-semibold text-white transition hover:shadow-lg hover:shadow-purple-500/30"

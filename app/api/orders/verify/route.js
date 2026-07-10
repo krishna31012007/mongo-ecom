@@ -4,11 +4,16 @@ import crypto from "crypto";
 
 export async function POST(req) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, razorpayKeySecret } = await req.json();
+
+    const keySecret = razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      return Response.json({ error: "Missing Razorpay secret" }, { status: 400 });
+    }
 
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", keySecret)
       .update(body.toString())
       .digest("hex");
 
