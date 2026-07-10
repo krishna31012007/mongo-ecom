@@ -1,6 +1,7 @@
 "use client";
 
 import {useState , useEffect} from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 
 export default function Home() {
@@ -49,12 +50,25 @@ export default function Home() {
     setIsSearched(false);
   };
 
+  const handleAddToCart = (product) => {
+    if (typeof window === "undefined") return;
+
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const alreadyExists = existingCart.some((item) => item._id === product._id);
+
+    if (!alreadyExists) {
+      const updatedCart = [...existingCart, product];
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-purple-500/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-4xl font-bold text-white mb-6 text-center">
+          <h1 className="mb-6 text-4xl font-bold text-white text-center">
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
               Exclusive Products
             </span>
@@ -75,7 +89,7 @@ export default function Home() {
               className="px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-purple-500/40 transition-all duration-300"
             >
               Search
-            </button>
+            </button> 
           </div>
         </div>
       </div>
@@ -145,12 +159,20 @@ export default function Home() {
                     ₹{product.price?.toLocaleString() || "N/A"}
                   </div>
 
-                  {/* Add to Cart Button */}
-                  <button
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50"
-                  >
-                    Add to Cart
-                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/product/${product._id}`}
+                      className="flex-1 rounded-lg border border-purple-400/30 bg-white/10 px-3 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/20"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
