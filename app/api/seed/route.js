@@ -1,14 +1,29 @@
 import connectDB from "@/lib/db";
+import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 import Product from "@/models/Product";
 
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+async function generateEmbedding(text) {
+  const response = await ai.models.embedContent({
+    model: "gemini-embedding-001",
+    contents: text,
+  });
+
+  return response.embeddings[0].values;
+}
+
 export async function GET(req) {
+
     await connectDB();
-    const products = await Product.find().lean();
 
     await Product.deleteMany();
 
-    await Product.insertMany([
+    const Products = [
   {
     "title": "blue t-shirt",
     "desc": "this is a blue t-shirt",
@@ -499,7 +514,16 @@ export async function GET(req) {
     "category": "home",
     "image": "https://picsum.photos/300/300?random=70"
   }
-]);
+];
+
+  const productsWithEmbeddings = await Promise.all(
+    Products.map(async (product) => {
+      const embedding = await generateEmbedding(`${product.title} ${product.desc} ${product.category}`);
+      return { ...product, embedding };
+    })
+  );
+
+    await Product.insertMany(productsWithEmbeddings);
 
     return Response.json({ message: "Seeded successfully" }, { status: 200 });
 }
