@@ -37,9 +37,8 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-
-     const maxKeywords = 10000;
-    // using groq api to generate keywords from the query
+      // using groq api to generate keywords from the query
+    // const maxKeywords = 10000;
     // const aiRes = await groq.chat.completions.create({
     //   model: "llama-3.1-8b-instant",
     //   messages: [
